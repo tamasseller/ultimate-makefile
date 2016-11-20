@@ -1,0 +1,48 @@
+OBJDIR = .o
+
+LIBFLAGS = $(addprefix -l, $(LIBS))
+LIBDIRFLAGS = $(addprefix -L, $(LIB_DIRS))
+INCDIRFLAGS = $(addprefix -I, $(INCLUDE_DIRS))
+
+DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.Td
+
+CC += $(DEPFLAGS) $(CFLAGS) $(INCDIRFLAGS)
+CXX += $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
+
+ABS_SOURCES = $(abspath $(SOURCES))
+
+OBJS = $(addsuffix .o, $(ABS_SOURCES))
+
+$(OUTPUT): $(addprefix $(OBJDIR)/, $(OBJS))
+	@printf 'Linking \e[1;36m$(notdir $@)\e[0m\n'
+	@$(LD) $^ $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@
+
+
+$(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
+$(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
+	@printf 'Compiling \e[1;33m$(notdir $<)\e[0m\n'
+	@mkdir -p $(dir $@)
+	@$(CC) -c -o $@ $<
+	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
+
+
+$(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
+$(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
+	@printf 'Compiling \e[1;33m$(notdir $<)\e[0m\n'
+	@mkdir -p $(dir $@)
+	@$(CXX) -c -o $@ $<
+	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
+
+
+$(OBJDIR)/%.d: ;
+.PRECIOUS: $(OBJDIR)/%.d
+
+
+.SUFFIXES:
+	MAKEFLAGS += -r
+	
+clean:
+	rm -rf $(OUTPUT) $(OBJDIR) $(CLEAN_EXTRA)
+
+-include $(patsubst %,$(OBJDIR)/%.d,$(basename $(ABS_SOURCES)))
+
