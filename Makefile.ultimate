@@ -1,3 +1,6 @@
+CPUS ?= $(shell nproc || echo 1)
+MAKEFLAGS += -j -l $((CPUS+1))
+
 OBJDIR = .o
 
 LIBFLAGS = $(addprefix -l, $(LIBS))
