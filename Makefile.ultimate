@@ -12,7 +12,10 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.Td
 CC += $(DEPFLAGS) $(CFLAGS) $(INCDIRFLAGS)
 CXX += $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
 
+ifdef RESOURCES
 LDFLAGS += --accept-unknown-input-arch
+endif
+
 
 ABS_SOURCES = $(abspath $(SOURCES))
 ABS_RESOURCES = $(abspath $(RESOURCES))
