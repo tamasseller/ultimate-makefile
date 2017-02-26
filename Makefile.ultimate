@@ -1,5 +1,5 @@
 CPUS ?= $(shell echo $(shell nproc || echo 1)+1 | bc)
-MAKEFLAGS += -j -l $(CPUS)
+MAKEFLAGS += -j $(CPUS)
 
 OBJDIR = .o
 
