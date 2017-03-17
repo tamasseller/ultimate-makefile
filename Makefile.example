@@ -1,0 +1,14 @@
+# OUTPUT       =
+# SOURCES      =
+# INCLUDE_DIRS =
+# LIB_DIRS     =
+# CC           =
+# CXX          =
+# LD           =
+# OBJCOPY      =
+# CFLAGS       = 
+# CXXFLAGS     = 
+# LIBS         =
+# LDFLAGS      = 
+
+include ultimate-makefile/Makefile.ultimate
