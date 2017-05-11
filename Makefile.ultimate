@@ -64,8 +64,11 @@ ifndef LCOVFILE
 LCOVFILE = $(LCOVDIR)/coverage.info
 endif
 
-LCOVFLAGS = -q --no-recursion --rc lcov_branch_coverage=1
+LCOVFLAGS += -q --no-recursion
+
+ifndef LCOVDATAPATH 
 LCOVDATAPATH = $(OBJDIR)/$(abspath .)
+endif
 
 check: $(OUTPUT)
 	@mkdir -p coverage
