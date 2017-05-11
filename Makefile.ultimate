@@ -71,7 +71,7 @@ check: $(OUTPUT)
 	@mkdir -p coverage
 	@lcov -q --zerocounters -d .
 	@printf 'Testing \e[1;35m$(notdir $<)\e[0m\n'
-	@$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(CPPUTEST_FLAGS)
+	@$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
 	@printf 'Lcov \e[1;37m$(notdir $<)\e[0m\n'
 	@lcov $(LCOVFLAGS) -o $(LCOVFILE) -c -d $(LCOVDATAPATH) -d $(LCOVDATAPATH)/.. 1>/dev/null 2>/dev/null 
 	@lcov --extract $(LCOVFILE) "$$(readlink -m $$PWD/..)/*" $(LCOVFLAGS) -o $(LCOVFILE)
