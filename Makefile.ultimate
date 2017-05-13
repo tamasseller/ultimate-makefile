@@ -114,14 +114,17 @@ ifndef LCOVFILE
 LCOVFILE = $(LCOVDIR)/coverage.info
 endif
 
-LCOVFLAGS = -q --no-recursion --rc lcov_branch_coverage=1
+LCOVFLAGS += -q --no-recursion
+
+ifndef LCOVDATAPATH 
 LCOVDATAPATH = $(OBJDIR)/$(abspath .)
+endif
 
 check: $(OUTPUT)
 	@mkdir -p coverage
 	@lcov -q --zerocounters -d .
 	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	@$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(CPPUTEST_FLAGS)
+	@$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
 	$P 'Lcov $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@lcov $(LCOVFLAGS) -o $(LCOVFILE) -c -d $(LCOVDATAPATH) -d $(LCOVDATAPATH)/.. 1>/dev/null 2>/dev/null 
 	@lcov --extract $(LCOVFILE) "$$(readlink -m $$PWD/..)/*" $(LCOVFLAGS) -o $(LCOVFILE)
