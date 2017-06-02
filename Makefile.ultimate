@@ -2,14 +2,17 @@
 # Determine the number of cores and set optimal number parallel jobs.
 #
 
-CPUS ?= $(shell echo $(shell nproc || echo 1)+1 | bc)
-MAKEFLAGS += -j $(CPUS)
+SHELL = /bin/bash										# Force using bash in case it would be set to /bin/sh by default.
+JOBS ?= $(shell echo $$(($(shell nproc || echo 1)+1)))	# Use bash arithmetic expansion to add one to the number of cores.
+MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argument list. 
 
 #
 # Convert header and library setting to gcc command line arguments. 
 #
 
+ifndef OBJDIR
 OBJDIR = .o
+endif
 
 LIBFLAGS = $(addprefix -l, $(LIBS))
 LIBDIRFLAGS = $(addprefix -L, $(LIB_DIRS))
