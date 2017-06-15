@@ -114,7 +114,7 @@ ifndef LCOVFILE
 LCOVFILE = $(LCOVDIR)/coverage.info
 endif
 
-LCOVFLAGS += -q 
+LCOVFLAGS += -q --rc lcov_branch_coverage=1
 
 ifndef LCOVDATAPATH 
 LCOVDATAPATH = $(OBJDIR)#/$(abspath .)
