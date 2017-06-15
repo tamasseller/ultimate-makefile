@@ -50,7 +50,7 @@ OBJS += $(addsuffix .res.o, $(ABS_RESOURCES))
 # Switching shell coloring off for in-IDE builds. 
 #
 
-#NCOLORS = $(shell tput colors 2>/dev/null)
+NCOLORS = $(shell tput colors 2>/dev/null)
 
 ifneq ($(NCOLORS),)
 YELLOW_COLOR = \e[1;33m
