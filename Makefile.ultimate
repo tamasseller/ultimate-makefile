@@ -81,14 +81,14 @@ $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
 $(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CC) -c -o $@ $<)
+	$S$(strip $(CC) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
 $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CXX) -c -o $@ $<)
+	$S$(strip $(CXX) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 
