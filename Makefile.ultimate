@@ -91,13 +91,17 @@ $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$S$(strip $(CXX) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
-
 $(OBJDIR)/%.res.o:: % $(MAKEFILE_LIST)
 	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	@cd $(dir $<) && \
 	$S$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@); \
 	cd $$OLDPWD
+	
+$(OBJDIR)/%.rc.o:: %.rc $(MAKEFILE_LIST)
+	$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@mkdir -p $(dir $@)
+	$S$(WINDRES) $< -o $@
 
 $(OBJDIR)/%.d: ;
 .PRECIOUS: $(OBJDIR)/%.d
