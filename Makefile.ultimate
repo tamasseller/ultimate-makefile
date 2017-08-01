@@ -84,23 +84,27 @@ $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
 $(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CC) -c -o $@ $<)
+	$S$(strip $(CC) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
 $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CXX) -c -o $@ $<)
+	$S$(strip $(CXX) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
-
 
 $(OBJDIR)/%.res.o:: % $(MAKEFILE_LIST)
 	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	@cd $(dir $<) && \
-	$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@); \
+	$S$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@); \
 	cd $$OLDPWD
+	
+$(OBJDIR)/%.rc.o:: %.rc $(MAKEFILE_LIST)
+	$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@mkdir -p $(dir $@)
+	$S$(WINDRES) $< -o $@
 
 $(OBJDIR)/%.d: ;
 .PRECIOUS: $(OBJDIR)/%.d
@@ -117,23 +121,21 @@ ifndef LCOVFILE
 LCOVFILE = $(LCOVDIR)/coverage.info
 endif
 
-LCOVFLAGS += -q --no-recursion
+LCOVFLAGS += -q --rc lcov_branch_coverage=1
 
 ifndef LCOVDATAPATH 
-LCOVDATAPATH = $(OBJDIR)/$(abspath .)
+LCOVDATAPATH = $(OBJDIR)#/$(abspath .)
 endif
 
 check: $(OUTPUT)
 	@mkdir -p coverage
-	@lcov -q --zerocounters -d .
+	$Slcov -q --zerocounters -d .
 	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	@$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
+	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
 	$P 'Lcov $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	@lcov $(LCOVFLAGS) -o $(LCOVFILE) -c -d $(LCOVDATAPATH) -d $(LCOVDATAPATH)/.. 1>/dev/null 2>/dev/null 
-	@lcov --extract $(LCOVFILE) "$$(readlink -m $$PWD/..)/*" $(LCOVFLAGS) -o $(LCOVFILE)
-	@lcov -r $(LCOVFILE) "*/test/*" $(LCOVFLAGS) -o $(LCOVFILE)
+	$Slcov $(LCOVFLAGS) -o $(LCOVFILE) -c -d $(LCOVDATAPATH) 1>/dev/null 2>/dev/null 
 	$P 'Genhtml $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	@genhtml --rc lcov_branch_coverage=1 -q --highlight --demangle-cpp $(LCOVFILE) --output-directory coverage
+	$Sgenhtml --rc lcov_branch_coverage=1 -q --highlight --demangle-cpp $(LCOVFILE) --output-directory coverage
 
 #
 # Clean rule, removes the output, coverage info and all temporary files.
