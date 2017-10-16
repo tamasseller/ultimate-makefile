@@ -32,7 +32,7 @@ CXX += $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
 #
 
 ifdef RESOURCES
-LDFLAGS += --accept-unknown-input-arch
+LDFLAGS += -Wl,--accept-unknown-input-arch
 endif
 
 #
@@ -97,9 +97,8 @@ $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 $(OBJDIR)/%.res.o:: % $(MAKEFILE_LIST)
 	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	@cd $(dir $<) && \
-	$S$(OBJCOPY) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@); \
-	cd $$OLDPWD
+	$Scd $(dir $<) && \
+	$(OC) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@)
 	
 $(OBJDIR)/%.rc.o:: %.rc $(MAKEFILE_LIST)
 	$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
