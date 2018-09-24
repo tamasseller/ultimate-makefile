@@ -144,8 +144,11 @@ check: $(OUTPUT)
 # Clean rule, removes the output, coverage info and all temporary files.
 #
 
-clean:
-	rm -rf $(OUTPUT) $(OBJDIR) $(CLEAN_EXTRA) $(LCOVDIR)
+mostlyclean:
+	rm -rf $(OBJDIR) $(CLEAN_EXTRA) $(LCOVDIR)
+
+clean: mostlyclean
+	rm -rf $(OUTPUT)
 
 #
 # Include the dependency info.
