@@ -76,10 +76,12 @@ endif
 
 all: $(OUTPUT)
 
-$(OUTPUT): $(addprefix $(OBJDIR)/, $(OBJS))
-	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
-	$S$(strip $(LD) $^ $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
+OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 
+$(OUTPUT): $(OBJS_WITH_PATH) $(ADDITONAL_DEPS)
+	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	$S$(strip $(LD) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
+	
 $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
 $(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
