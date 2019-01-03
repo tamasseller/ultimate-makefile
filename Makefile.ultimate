@@ -96,7 +96,7 @@ $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
-$(OBJDIR)/%.res.o:: % $(MAKEFILE_LIST)
+$(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
 	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$Scd $(dir $<) && \
