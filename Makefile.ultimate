@@ -26,6 +26,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.Td
 
 CC_WITH_FLAGS += $(CC) $(DEPFLAGS) $(CFLAGS) $(INCDIRFLAGS)
 CXX_WITH_FLAGS += $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
+WINDRES_WITH_FLAGS += $(WINDRES) $(addprefix --preprocessor-arg=, $(DEPFLAGS)) $(INCDIRFLAGS)
 
 #
 # If there are resources add linker option to enable linking them in.
@@ -102,10 +103,13 @@ $(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
 	$Scd $(dir $<) && \
 	$(OC) --rename-section .data=.rodata,alloc,load,readonly,data,contents -I binary -O elf32-little $(notdir $<) $(abspath $@)
 	
-$(OBJDIR)/%.rc.o:: %.rc $(MAKEFILE_LIST)
+$(OBJDIR)/%.rc.o: %.rc $(MAKEFILE_LIST)
+$(OBJDIR)/%.rc.o: %.rc $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(WINDRES) $< -o $@
+	$S$(WINDRES_WITH_FLAGS) $< -o $@
+	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
+
 
 $(OBJDIR)/%.d: ;
 .PRECIOUS: $(OBJDIR)/%.d
