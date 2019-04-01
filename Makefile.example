@@ -1,10 +1,12 @@
 # OUTPUT       =
+# OUTLIB       =
 # SOURCES      =
 # INCLUDE_DIRS =
 # LIB_DIRS     =
 # CC           =
 # CXX          =
 # LD           =
+# AR           =
 # OBJCOPY      =
 # CFLAGS       = 
 # CXXFLAGS     = 
