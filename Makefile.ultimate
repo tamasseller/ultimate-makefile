@@ -29,14 +29,6 @@ CXX_WITH_FLAGS += $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
 WINDRES_WITH_FLAGS += $(WINDRES) $(addprefix --preprocessor-arg=, $(DEPFLAGS)) $(INCDIRFLAGS)
 
 #
-# If there are resources add linker option to enable linking them in.
-#
-
-ifdef RESOURCES
-LDFLAGS += -Wl,--accept-unknown-input-arch
-endif
-
-#
 # Convert source file path to absolute.
 #
 
@@ -81,11 +73,11 @@ all: $(OUTPUT)
 
 OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 
-$(OUTPUT): $(OBJS_WITH_PATH) $(ADDITONAL_DEPS)
+$(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
 	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
-	$S$(strip $(LD) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
+	$S$(strip $(or $(FINALLD),$(LD)) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
 
-$(OUTLIB): $(OBJS_WITH_PATH) $(ADDITONAL_DEPS)
+$(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
 	$P 'Creating static library $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(AR) rcs $@ $(OBJS_WITH_PATH))
 	
@@ -109,7 +101,8 @@ $(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
 	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$Scd $(dir $<) && \
-	$(OC) --rename-section .data=$(or $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_SECTION),$(__DEFAULT_RESOURCE_SECTION)) -I binary -O elf32-little $(notdir $<) $(abspath $@)
+	$(strip $(LD) -r -b binary -o $(abspath $@) $(notdir $<))
+	$S$(OC) --rename-section .data=$(or $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_SECTION),$(__DEFAULT_RESOURCE_SECTION)) $(abspath $@) $(abspath $@)
 	
 $(OBJDIR)/%.rc.o: %.rc $(MAKEFILE_LIST)
 $(OBJDIR)/%.rc.o: %.rc $(OBJDIR)/%.d $(MAKEFILE_LIST)
@@ -162,7 +155,7 @@ mostlyclean:
 	rm -rf $(OBJDIR) $(CLEAN_EXTRA) $(LCOVDIR)
 
 clean: mostlyclean
-	rm -rf $(OUTPUT)
+	rm -rf $(or $(OUTPUT) $(OUTLIB))
 
 #
 # Include the dependency info.
