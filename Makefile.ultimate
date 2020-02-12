@@ -119,33 +119,20 @@ $(OBJDIR)/%.d: ;
 # Coverage info generation.
 #
 
-ifndef LCOVDIR
-LCOVDIR = coverage
+ifndef COVDIR
+COVDIR = coverage
 endif
 
-ifndef LCOVFILE
-LCOVFILE = $(LCOVDIR)/coverage.info
-endif
-
-ifndef LCOVFLAGS
-LCOVFLAGS = --rc lcov_branch_coverage=1
-endif
-
-LCOVFLAGS += -q
-
-ifndef LCOVDATAPATH 
-LCOVDATAPATH = $(OBJDIR)#/$(abspath .)
+ifndef COVFILE
+COVFILE = $(COVDIR)/coverage.html
 endif
 
 check: $(OUTPUT)
 	@mkdir -p coverage
-	$Slcov -q --zerocounters -d .
 	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
-	$P 'Lcov $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	$Slcov $(LCOVFLAGS) -o $(LCOVFILE) -c -d $(LCOVDATAPATH) 1>/dev/null 2>/dev/null 
-	$P 'Genhtml $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	$Sgenhtml $(LCOVFLAGS) --highlight --demangle-cpp $(LCOVFILE) --output-directory coverage
+	$P 'Gcovr $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	$Sgcovr -r .. --html-details -o $(COVFILE) $(COVFLAGS)
 
 #
 # Clean rule, removes the output, coverage info and all temporary files.
