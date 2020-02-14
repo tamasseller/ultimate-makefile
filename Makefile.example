@@ -13,5 +13,6 @@
 # LIBS            =
 # LDFLAGS         = 
 # ADDITIONAL_DEPS = 
+# COVFLAGS		  =
 
 include ultimate-makefile/Makefile.ultimate

@@ -128,6 +128,7 @@ COVFILE = $(COVDIR)/coverage.html
 endif
 
 check: $(OUTPUT)
+	@rm -rf coverage
 	@mkdir -p coverage
 	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
