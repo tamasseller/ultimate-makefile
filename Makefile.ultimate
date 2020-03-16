@@ -14,7 +14,7 @@ sys = $(shell uname -a)
 
 ifneq (,$(findstring Cygwin, $(sys)))
 ifneq ($(ULTIMATE_DEBUG),)
-$(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used.)
+$(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used)
 endif
 	
 winpath_pre= $(addprefix ', $1)
@@ -22,7 +22,7 @@ winpath_post= $(addsuffix ', $1)
 winpath=$(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $1)))
 else
 ifneq ($(ULTIMATE_DEBUG),)
-$(info Not Cygwin path assumed (uname -a returns "$(sys)") => no winpath machinations are used.)
+$(info Assuming we are not using Cygwin enviroment (uname -a returns "$(sys)") => no winpath modifications are used)
 endif
 winpath?=$1
 endif
