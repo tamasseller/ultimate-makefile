@@ -7,6 +7,27 @@ JOBS ?= $(shell echo $$(($(shell nproc || echo 1)+1)))	# Use bash arithmetic exp
 MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argument list. 
 
 #
+# See what system we are runnning on
+#
+
+sys = $(shell uname -a)
+
+ifneq (,$(findstring Cygwin, $(sys)))
+ifneq ($(ULTIMATE_DEBUG),)
+$(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used.)
+endif
+	
+winpath_pre= $(addprefix ', $1)
+winpath_post= $(addsuffix ', $1)
+winpath=$(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $1)))
+else
+ifneq ($(ULTIMATE_DEBUG),)
+$(info Not Cygwin path assumed (uname -a returns "$(sys)") => no winpath machinations are used.)
+endif
+winpath?=$1
+endif
+
+#
 # Convert header and library setting to gcc command line arguments. 
 #
 
@@ -16,7 +37,7 @@ endif
 
 LIBFLAGS = $(addprefix -l, $(LIBS))
 LIBDIRFLAGS = $(addprefix -L, $(LIB_DIRS))
-INCDIRFLAGS = $(addprefix -I, $(INCLUDE_DIRS))
+INCDIRFLAGS = $(addprefix -I, $(call winpath, $(INCLUDE_DIRS)))
 
 #
 # Construct build commands and add dependency info generation arguments.
@@ -85,14 +106,14 @@ $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
 $(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CC_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
+	$S$(strip $(CC_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
 $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
+	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 __DEFAULT_RESOURCE_SECTION = .rodata,alloc,load,readonly,data,contents
