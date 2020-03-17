@@ -104,10 +104,6 @@ OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 $(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
 	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(or $(FINALLD),$(LD)) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
-ifneq ($(strip $(OBJCOPY)),)
-	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
-	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $@ $(basename $@).hex)
-endif
 ifneq ($(strip $(OBJSIZE)),)
 	$S$(strip $(OBJSIZE) $(strip $(OBJSIZEFLAGS)) $@)
 endif
@@ -146,9 +142,14 @@ $(OBJDIR)/%.rc.o: %.rc $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$S$(WINDRES_WITH_FLAGS) $< -o $@
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
-
 $(OBJDIR)/%.d: ;
 .PRECIOUS: $(OBJDIR)/%.d
+
+ifneq ($(strip $(OBJCOPY)),)
+hex: $(OUTPUT)
+	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $(OUTPUT) $(basename $(OUTPUT)).hex)
+endif	
 
 #
 # Coverage info generation.
