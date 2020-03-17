@@ -13,13 +13,17 @@ MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argume
 sys = $(shell uname -a)
 
 ifneq (,$(findstring Cygwin, $(sys)))
-$S $(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used)
-
+ifneq ($(ULTIMATE_DEBUG),) 
+$(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used) 
+endif
 winpath_pre= $(addprefix ', $1)
 winpath_post= $(addsuffix ', $1)
 winpath=$(if $(strip $1), $(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $(strip $1)))))
+
 else
-$S $(info Assuming we are not using Cygwin enviroment (uname -a returns "$(sys)") => no winpath modifications are used)
+ifneq ($(ULTIMATE_DEBUG),)
+$(info Assuming we are not using Cygwin enviroment (uname -a returns "$(sys)") => no winpath modifications are used)
+endif
 winpath?=$1
 endif
 
@@ -98,6 +102,7 @@ endif
 #
 .PHONY: flags
 $(OBJDIR)/.LAST_FLAGS: flags
+	@mkdir -p $(dir $@)
 	$S echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' > $@
 
 all: $(OUTPUT)
