@@ -19,13 +19,20 @@ endif
 	
 winpath_pre= $(addprefix ', $1)
 winpath_post= $(addsuffix ', $1)
-winpath=$(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $1)))
+winpath=$(if $(strip $1), $(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $(strip $1)))))
 else
 ifneq ($(ULTIMATE_DEBUG),)
 $(info Assuming we are not using Cygwin enviroment (uname -a returns "$(sys)") => no winpath modifications are used)
 endif
 winpath?=$1
 endif
+
+#
+# POST build tool flag default
+#
+
+OBJCOPYFLAGS?=ihex
+OBJSIZEFLAGS?=--format=berkeley
 
 #
 # Convert header and library setting to gcc command line arguments. 
@@ -36,7 +43,7 @@ OBJDIR = .o
 endif
 
 LIBFLAGS = $(addprefix -l, $(LIBS))
-LIBDIRFLAGS = $(addprefix -L, $(LIB_DIRS))
+LIBDIRFLAGS = $(addprefix -L, $(call winpath, $(LIB_DIRS)))
 INCDIRFLAGS = $(addprefix -I, $(call winpath, $(INCLUDE_DIRS)))
 
 #
@@ -97,6 +104,13 @@ OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 $(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
 	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(or $(FINALLD),$(LD)) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
+ifneq ($(strip $(OBJCOPY)),)
+	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $@ $(basename $@).hex)
+endif
+ifneq ($(strip $(OBJSIZE)),)
+	$S$(strip $(OBJSIZE) $(strip $(OBJSIZEFLAGS)) $@)
+endif
 
 $(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
 	$P 'Creating static library $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'

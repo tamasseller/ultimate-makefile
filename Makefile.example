@@ -8,11 +8,14 @@
 # LD              =
 # AR              =
 # OBJCOPY         =
+# OBJCOPYFLAGS	  =
+# OBJSIZE	      =
+# OBJSIZEFLAGS    =
 # CFLAGS          = 
 # CXXFLAGS        = 
 # LIBS            =
 # LDFLAGS         = 
 # ADDITIONAL_DEPS = 
-# COVFLAGS		  =
+# COVFLAGS	      =
 
 include ultimate-makefile/Makefile.ultimate
