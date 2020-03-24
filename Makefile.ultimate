@@ -4,7 +4,35 @@
 
 SHELL = /bin/bash										# Force using bash in case it would be set to /bin/sh by default.
 JOBS ?= $(shell echo $$(($(shell nproc || echo 1)+1)))	# Use bash arithmetic expansion to add one to the number of cores.
-MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argument list. 
+MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argument list.
+
+#
+# See what system we are runnning on
+#
+
+sys = $(shell uname -a)
+
+ifneq (,$(findstring Cygwin, $(sys)))
+ifneq ($(ULTIMATE_DEBUG),) 
+$(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used) 
+endif
+winpath_pre= $(addprefix ', $1)
+winpath_post= $(addsuffix ', $1)
+winpath=$(if $(strip $1), $(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $(strip $1)))))
+
+else
+ifneq ($(ULTIMATE_DEBUG),)
+$(info Assuming we are not using Cygwin enviroment (uname -a returns "$(sys)") => no winpath modifications are used)
+endif
+winpath?=$1
+endif
+
+#
+# Post build tool flag default
+#
+
+OBJCOPYFLAGS?=ihex
+OBJSIZEFLAGS?=--format=berkeley
 
 #
 # Convert header and library setting to gcc command line arguments. 
@@ -15,8 +43,8 @@ OBJDIR = .o
 endif
 
 LIBFLAGS = $(addprefix -l, $(LIBS))
-LIBDIRFLAGS = $(addprefix -L, $(LIB_DIRS))
-INCDIRFLAGS = $(addprefix -I, $(INCLUDE_DIRS))
+LIBDIRFLAGS = $(addprefix -L, $(call winpath, $(LIB_DIRS)))
+INCDIRFLAGS = $(addprefix -I, $(call winpath, $(INCLUDE_DIRS)))
 
 #
 # Construct build commands and add dependency info generation arguments.
@@ -68,31 +96,42 @@ endif
 
 .SUFFIXES:
 	MAKEFLAGS += -r
+	
+#
+# Output complier flag dependency with temp file
+#
+.PHONY: flags
+$(OBJDIR)/.LAST_FLAGS: flags
+	@mkdir -p $(dir $@)
+	$S echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' > $@
 
 all: $(OUTPUT)
 
 OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 
-$(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
+$(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
 	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(or $(FINALLD),$(LD)) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
+ifneq ($(strip $(OBJSIZE)),)
+	$S$(strip $(OBJSIZE) $(strip $(OBJSIZEFLAGS)) $@)
+endif
 
-$(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS)
+$(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
 	$P 'Creating static library $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(AR) rcs $@ $(OBJS_WITH_PATH))
 	
 $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
-$(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST)
+$(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CC_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
+	$S$(strip $(CC_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
-$(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST)
+$(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
 	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
-	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $<)
+	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 __DEFAULT_RESOURCE_SECTION = .rodata,alloc,load,readonly,data,contents
@@ -111,9 +150,14 @@ $(OBJDIR)/%.rc.o: %.rc $(OBJDIR)/%.d $(MAKEFILE_LIST)
 	$S$(WINDRES_WITH_FLAGS) $< -o $@
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
-
 $(OBJDIR)/%.d: ;
 .PRECIOUS: $(OBJDIR)/%.d
+
+ifneq ($(strip $(OBJCOPY)),)
+$(basename $(OUTPUT)).hex: $(OUTPUT)
+	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $(OUTPUT) $(basename $(OUTPUT)).hex)
+endif	
 
 #
 # Coverage info generation.
