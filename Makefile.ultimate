@@ -97,14 +97,6 @@ endif
 .SUFFIXES:
 	MAKEFLAGS += -r
 	
-#
-# Output complier flag dependency with temp file
-#
-.PHONY: flags
-$(OBJDIR)/.LAST_FLAGS: flags
-	@mkdir -p $(dir $@)
-	$S echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' > $@
-
 all: $(OUTPUT)
 
 OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
@@ -158,6 +150,14 @@ $(basename $(OUTPUT)).hex: $(OUTPUT)
 	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $(OUTPUT) $(basename $(OUTPUT)).hex)
 endif	
+
+#
+# Output complier flag dependency with temp file
+#
+.PHONY: flags
+$(OBJDIR)/.LAST_FLAGS: flags
+	@mkdir -p $(dir $@)
+	$S echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CXXFLAGS) $(LDFLAGS)' > $@
 
 #
 # Coverage info generation.
