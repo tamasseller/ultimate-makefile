@@ -12,13 +12,32 @@ MAKEFLAGS += -j $(JOBS)									# Add -j <number of CPUs plus one> to the argume
 
 sys = $(shell uname -a)
 
+# Enable cmake like VERBOSE=1 command line argument
+ULTIMATE_DEBUG?=$(VERBOSE)
+
+# Test if system is Cygwin
 ifneq (,$(findstring Cygwin, $(sys)))
+
+# Pick C or C++ compiler to check wether its platform is Cygwin or not.
+TEST_COMPILER = $(CXX)									
+ifeq ($(TEST_COMPILER),) 
+TEST_COMPILER = $(CC)
+endif
+
+COMPILER_PLATFORM = $(shell $(TEST_COMPILER) -dumpmachine)
+ifneq (,$(findstring cygwin, $(COMPILER_PLATFORM)))
+ifneq ($(ULTIMATE_DEBUG),) 
+$(info Assuming Cygwin enviroment and Cygwin target winpath modifications are **NOT** used) 
+endif
+winpath?=$1
+else
 ifneq ($(ULTIMATE_DEBUG),) 
 $(info Assuming Cygwin enviroment (uname -a returns "$(sys)") => winpath modifications are used) 
 endif
 winpath_pre= $(addprefix ', $1)
 winpath_post= $(addsuffix ', $1)
 winpath=$(if $(strip $1), $(call winpath_pre, $(call winpath_post, $(shell cygpath -wa $(strip $1)))))
+endif
 
 else
 ifneq ($(ULTIMATE_DEBUG),)
