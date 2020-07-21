@@ -190,20 +190,24 @@ ifndef COVFILE
 COVFILE = $(COVDIR)/coverage.html
 endif
 
+ifndef COVROOT
+COVROOT = ..
+endif
+
 check: $(OUTPUT)
 	@rm -rf coverage
 	@mkdir -p coverage
 	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
 	$P 'Gcovr $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
-	$Sgcovr -r .. --html-details -o $(COVFILE) $(COVFLAGS)
+	$Sgcovr -r $(COVROOT) --html-details -o $(COVFILE) $(COVFLAGS)
 
 #
 # Clean rule, removes the output, coverage info and all temporary files.
 #
 
 mostlyclean:
-	rm -rf $(OBJDIR) $(CLEAN_EXTRA) $(LCOVDIR)
+	rm -rf $(OBJDIR) $(CLEAN_EXTRA) $(COVDIR)
 
 clean: mostlyclean
 	rm -rf $(or $(OUTPUT) $(OUTLIB))
