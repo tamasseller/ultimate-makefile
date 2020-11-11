@@ -3,6 +3,7 @@
 # SOURCES         =
 # INCLUDE_DIRS    =
 # LIB_DIRS        =
+# ASM             =
 # CC              =
 # CXX             =
 # LD              =
@@ -11,6 +12,7 @@
 # OBJCOPYFLAGS	  =
 # OBJSIZE	      =
 # OBJSIZEFLAGS    =
+# ASMFLAGS        =
 # CFLAGS          = 
 # CXXFLAGS        = 
 # LIBS            =
