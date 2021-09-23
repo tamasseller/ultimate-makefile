@@ -258,6 +258,7 @@ normal-install: pre-install
 	@$(NORMAL_INSTALL)
 	$S$(call deploy_program,$(DEPL_BIN),$(DESTDIR)${bindir})
 	$S$(call deploy_data,$(DEPL_LIB),$(DESTDIR)${libdir})
+	$S$(call depl_on_each_file,depl_create_so_version_symlinks,$(DEPL_LIB),$(DESTDIR)${libdir}) true
 	$S$(call deploy_data,$(DEPL_ETC),$(DESTDIR)${sysconfdir})
 	$S$(call deploy_data,$(DEPL_SHARE),$(DESTDIR)${datadir})
 	$S$(call deploy_data,$(DEPL_INCLUDE),$(DESTDIR)${includedir})
@@ -274,6 +275,7 @@ pre-uninstall: before-pre-uninstall
 normal-uninstall: pre-uninstall
 	@$(NORMAL_UNINSTALL)
 	$S$(call undeploy,$(DEPL_BIN),$(DESTDIR)${bindir})
+	$S$(call depl_on_each_file,depl_remove_so_version_symlinks,$(DEPL_LIB),$(DESTDIR)${libdir}) true
 	$S$(call undeploy,$(DEPL_LIB),$(DESTDIR)${libdir})
 	$S$(call undeploy,$(DEPL_ETC),$(DESTDIR)${sysconfdir})
 	$S$(call undeploy,$(DEPL_SHARE),$(DESTDIR)${datadir})
@@ -288,17 +290,28 @@ depl_extract_files = $(sort $(foreach v, $(1), $(shell if [ ! -d $v ]; then echo
 
 depl_find_subdirs = $(addprefix $(notdir $1)/,$(shell find $1 -type d -printf '%P '))
 depl_expand_subdirs = $(foreach v,$(call depl_extract_dirs,$1),$(notdir $v) $(call depl_find_subdirs,$v))
-depl_create_dirs = mkdir -p $(abspath $2 $(addprefix $2/,$(call depl_expand_subdirs,$1)))
 depl_remove_dirs = cd $2 $(foreach v,$(call depl_expand_subdirs,$1),&& rmdir --ignore-fail-on-non-empty -p $v )
 
 depl_on_each_file_in_root = $(foreach v, $(call depl_extract_files,$2),$(call $1,$v,$3/$(notdir $v)))
 depl_on_each_file_in_subdir  = $(foreach v, $(call depl_extract_dirs,$2),$(foreach w,$(shell find $v -type f -printf '%P '), $(call $1,$v/$w,$3/$(notdir $v)/$w)))
 depl_on_each_file = $(call depl_on_each_file_in_subdir,$1,$2,$3) $(call depl_on_each_file_in_root,$1,$2,$3)
 
-depl_invoke_install_data = && $P 'Installing $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && $(INSTALL_DATA) "$1" "$2"
-depl_invoke_install_program  = && $P 'Installing executable $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && $(INSTALL_PROGRAM) "$1" "$2"
+depl_invoke_install_data = && $P 'Installing $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && mkdir -p $(dir $2) && $(INSTALL_DATA) "$1" "$2"
+depl_invoke_install_program  = && $P 'Installing executable $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && mkdir -p $(dir $2) && $(INSTALL_PROGRAM) "$1" "$2"
 depl_invoke_remove = $P 'Removing $(RED_COLOR)$2$(RESET_COLOR)\n' && rm -f $2 &&
 
-deploy_program = $(call depl_create_dirs,$1,$2) $(call depl_on_each_file,depl_invoke_install_program,$1,$2)
-deploy_data = $(call depl_create_dirs,$1,$2) $(call depl_on_each_file,depl_invoke_install_data,$1,$2)
-undeploy = $(call depl_on_each_file,depl_invoke_remove,$1,$2) $(call depl_remove_dirs,$1,$2)
+deploy_program = true $(call depl_on_each_file,depl_invoke_install_program,$1,$2)
+deploy_data = true $(call depl_on_each_file,depl_invoke_install_data,$1,$2)
+undeploy = if [ -d $2 ]; then $(call depl_on_each_file,depl_invoke_remove,$1,$2) $(call depl_remove_dirs,$1,$2); fi
+
+so_noop=
+so_space = $(noop) $(noop)
+so_allbutlast = $(wordlist 1,$(shell echo $$(($(words $1)-1))),$1)
+so_recurse = $(if $(filter so,$1),$(call so_recurse,$(call so_allbutlast,$1)) $(subst $(so_space),.,$1))
+so_find_prefixes = $(call so_recurse,$(call so_allbutlast,$1))
+so_for_each_prefix = $(foreach v, $(call so_find_prefixes,$(subst ., ,$2)),$(call $1,$v,$2))
+so_make_symlink = $P 'Creating symbolic link $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && { ln -s -f $2 $1 || { rm -f $1 && ln -s $2 $1; } } &&
+so_remove_symlink = $P 'Removing symbolic link $(RED_COLOR)$1$(RESET_COLOR)\n' && rm -f $1 } } &&
+
+depl_create_so_version_symlinks = cd $(dir $2) && $(call so_for_each_prefix,so_make_symlink,$(notdir $2)) 
+depl_remove_so_version_symlinks = $(call so_for_each_prefix,so_remove_symlink,$2)
