@@ -126,6 +126,8 @@ endif
 
 all: $(OUTPUT) $(OUTLIB)
 
+.DEFAULT_GOAL := all
+
 OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 
 $(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
@@ -208,12 +210,14 @@ ifndef COVROOT
 COVROOT = ..
 endif
 
+print_extra_step = @$P 'Running $(WHITE_COLOR)$(strip $1)$(RESET_COLOR)\n'
+
 check: $(OUTPUT)
 	@rm -rf coverage
 	@mkdir -p coverage
 	@$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
-	@$P 'Gcovr $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	$(call print_extra_step, "gcovr $(notdir $<)")
 	$Sgcovr -r $(COVROOT) --html-details -o $(COVFILE) $(COVFLAGS)
 
 #
