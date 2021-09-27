@@ -100,19 +100,21 @@ endif
 
 ifeq ($(NO_PRETTY),)
 ifneq ($(NCOLORS),)
+RED_COLOR = \e[1;31m
+GREEN_COLOR = \e[1;32m
 YELLOW_COLOR = \e[1;33m
 PURPLE_COLOR = \e[1;35m
 BLUE_COLOR = \e[1;36m
 WHITE_COLOR = \e[1;37m
 RESET_COLOR = \e[0m
 S = @
-P = @printf
+P = printf
 else
-P = @:
+P = :
 endif
 else
 S = @
-P = @printf
+P = printf
 endif
 
 #
@@ -122,37 +124,39 @@ endif
 .SUFFIXES:
 	MAKEFLAGS += -r
 
-all: $(OUTPUT)
+all: $(OUTPUT) $(OUTLIB)
+
+.DEFAULT_GOAL := all
 
 OBJS_WITH_PATH = $(addprefix $(OBJDIR)/, $(OBJS))
 
 $(OUTPUT): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
-	$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	@$P 'Linking $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(or $(FINALLD),$(LD)) $(OBJS_WITH_PATH) $(LDFLAGS) $(LIBFLAGS) $(LIBDIRFLAGS) -o $@)
 ifneq ($(strip $(OBJSIZE)),)
 	$S$(strip $(OBJSIZE) $(strip $(OBJSIZEFLAGS)) $@)
 endif
 
 $(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
-	$P 'Creating static library $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	@$P 'Creating static library $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(AR) rcs $@ $(OBJS_WITH_PATH))
 	
 $(OBJDIR)/%.S.o: %.S $(MAKEFILE_LIST)
 $(OBJDIR)/%.S.o: %.S $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
-	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$S$(strip $(ASM_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 
 $(OBJDIR)/%.c.o: %.c $(MAKEFILE_LIST)
 $(OBJDIR)/%.c.o: %.c $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
-	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$S$(strip $(CC_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(MAKEFILE_LIST)
 $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
-	$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$S$(strip $(CXX_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
@@ -160,7 +164,7 @@ $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
 __DEFAULT_RESOURCE_SECTION = .rodata,alloc,load,readonly,data,contents
 
 $(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
-	$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$Scd $(dir $<) && \
 	$(strip $(LD) -r -b binary -o $(abspath $@) $(notdir $<))
@@ -168,7 +172,7 @@ $(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
 	
 $(OBJDIR)/%.rc.o: %.rc $(MAKEFILE_LIST)
 $(OBJDIR)/%.rc.o: %.rc $(OBJDIR)/%.d $(MAKEFILE_LIST)
-	$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Window$$ resource compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$S$(WINDRES_WITH_FLAGS) $< -o $@
 	@mv -f $(OBJDIR)/$*.Td $(OBJDIR)/$*.d
@@ -178,7 +182,7 @@ $(OBJDIR)/%.d: ;
 
 ifneq ($(strip $(OBJCOPY)),)
 $(basename $(OUTPUT)).hex: $(OUTPUT)
-	$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
+	@$P 'Copying $(BLUE_COLOR)$(notdir $@)$(RESET_COLOR)\n'
 	$S$(strip $(strip $(OBJCOPY)) -O $(strip $(OBJCOPYFLAGS)) $(OUTPUT) $(basename $(OUTPUT)).hex)
 endif	
 
@@ -206,12 +210,14 @@ ifndef COVROOT
 COVROOT = ..
 endif
 
+print_extra_step = @$P 'Running $(WHITE_COLOR)$(strip $1)$(RESET_COLOR)\n'
+
 check: $(OUTPUT)
 	@rm -rf coverage
 	@mkdir -p coverage
-	$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	@$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
-	$P 'Gcovr $(WHITE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
+	$(call print_extra_step, "gcovr $(notdir $<)")
 	$Sgcovr -r $(COVROOT) --html-details -o $(COVFILE) $(COVFLAGS)
 
 #
@@ -230,3 +236,86 @@ clean: mostlyclean
 
 -include $(patsubst %,$(OBJDIR)/%.d,$(basename $(ABS_SOURCES)))
 
+#
+# Define install rules
+#
+
+prefix = /usr/local
+exec_prefix = ${prefix}
+bindir = ${exec_prefix}/bin
+libdir = ${exec_prefix}/lib
+datarootdir = ${prefix}/share
+datadir = ${datarootdir}
+sysconfdir = ${prefix}/etc
+includedir = ${prefix}/include
+
+INSTALL = /usr/bin/install -c
+INSTALL_DATA = ${INSTALL} -m 644
+INSTALL_PROGRAM = ${INSTALL}
+
+before-pre-install: all
+	@$(PRE_INSTALL)
+
+pre-install: before-pre-install
+
+normal-install: pre-install
+	@$(NORMAL_INSTALL)
+	$S$(call deploy_program,$(DEPL_BIN),$(DESTDIR)${bindir})
+	$S$(call deploy_data,$(DEPL_LIB),$(DESTDIR)${libdir})
+	$S$(call depl_on_each_file,depl_create_so_version_symlinks,$(DEPL_LIB),$(DESTDIR)${libdir}) true
+	$S$(call deploy_data,$(DEPL_ETC),$(DESTDIR)${sysconfdir})
+	$S$(call deploy_data,$(DEPL_SHARE),$(DESTDIR)${datadir})
+	$S$(call deploy_data,$(DEPL_INCLUDE),$(DESTDIR)${includedir})
+	@$(POST_INSTALL)
+
+post-install: normal-install
+install: post-install ;
+
+before-pre-uninstall:
+	@$(PRE_UNINSTALL)
+
+pre-uninstall: before-pre-uninstall
+
+normal-uninstall: pre-uninstall
+	@$(NORMAL_UNINSTALL)
+	$S$(call undeploy,$(DEPL_BIN),$(DESTDIR)${bindir})
+	$S$(call depl_on_each_file,depl_remove_so_version_symlinks,$(DEPL_LIB),$(DESTDIR)${libdir}) true
+	$S$(call undeploy,$(DEPL_LIB),$(DESTDIR)${libdir})
+	$S$(call undeploy,$(DEPL_ETC),$(DESTDIR)${sysconfdir})
+	$S$(call undeploy,$(DEPL_SHARE),$(DESTDIR)${datadir})
+	$S$(call undeploy,$(DEPL_INCLUDE),$(DESTDIR)${includedir})
+	@$(POST_UNINSTALL)
+
+post-uninstall: normal-uninstall
+uninstall: post-uninstall ;
+
+depl_extract_dirs = $(sort $(foreach v, $(1), $(shell if [ -d $v ]; then echo $v; fi)))
+depl_extract_files = $(sort $(foreach v, $(1), $(shell if [ ! -d $v ]; then echo $v; fi)))
+
+depl_find_subdirs = $(addprefix $(notdir $1)/,$(shell find $1 -type d -printf '%P '))
+depl_expand_subdirs = $(foreach v,$(call depl_extract_dirs,$1),$(notdir $v) $(call depl_find_subdirs,$v))
+depl_remove_dirs = cd $2 $(foreach v,$(call depl_expand_subdirs,$1),&& rmdir --ignore-fail-on-non-empty -p $v )
+
+depl_on_each_file_in_root = $(foreach v, $(call depl_extract_files,$2),$(call $1,$v,$3/$(notdir $v)))
+depl_on_each_file_in_subdir  = $(foreach v, $(call depl_extract_dirs,$2),$(foreach w,$(shell find $v -type f -printf '%P '), $(call $1,$v/$w,$3/$(notdir $v)/$w)))
+depl_on_each_file = $(call depl_on_each_file_in_subdir,$1,$2,$3) $(call depl_on_each_file_in_root,$1,$2,$3)
+
+depl_invoke_install_data = && $P 'Installing $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && mkdir -p $(dir $2) && $(INSTALL_DATA) "$1" "$2"
+depl_invoke_install_program  = && $P 'Installing executable $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && mkdir -p $(dir $2) && $(INSTALL_PROGRAM) "$1" "$2"
+depl_invoke_remove = $P 'Removing $(RED_COLOR)$2$(RESET_COLOR)\n' && rm -f $2 &&
+
+deploy_program = true $(call depl_on_each_file,depl_invoke_install_program,$1,$2)
+deploy_data = true $(call depl_on_each_file,depl_invoke_install_data,$1,$2)
+undeploy = if [ -d $2 ]; then $(call depl_on_each_file,depl_invoke_remove,$1,$2) $(call depl_remove_dirs,$1,$2); fi
+
+so_noop=
+so_space = $(noop) $(noop)
+so_allbutlast = $(wordlist 1,$(shell echo $$(($(words $1)-1))),$1)
+so_recurse = $(if $(filter so,$1),$(call so_recurse,$(call so_allbutlast,$1)) $(subst $(so_space),.,$1))
+so_find_prefixes = $(call so_recurse,$(call so_allbutlast,$1))
+so_for_each_prefix = $(foreach v, $(call so_find_prefixes,$(subst ., ,$2)),$(call $1,$v,$2))
+so_make_symlink = $P 'Creating symbolic link $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && { ln -s -f $2 $1 || { rm -f $1 && ln -s $2 $1; } } &&
+so_remove_symlink = $P 'Removing symbolic link $(RED_COLOR)$1$(RESET_COLOR)\n' && rm -f $1 } } &&
+
+depl_create_so_version_symlinks = cd $(dir $2) && $(call so_for_each_prefix,so_make_symlink,$(notdir $2)) 
+depl_remove_so_version_symlinks = $(call so_for_each_prefix,so_remove_symlink,$2)

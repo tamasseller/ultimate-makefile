@@ -1,23 +1,95 @@
+# Name of output binary file (can also be dynamic library)
 # OUTPUT          =
+
+# Name of output file for a static library
 # OUTLIB          =
-# SOURCES         =
-# INCLUDE_DIRS    =
-# LIB_DIRS        =
+
+# Source files to compile
+# SOURCES         +=
+
+# Additional include directories passed to compilers  
+# INCLUDE_DIRS    +=
+
+# Additional library seach directories passed to linker
+# LIB_DIRS        +=
+
+# Addtional libraries to link against.
+# LIBS            +=
+
+# Addtional flags for assembler
+# ASMFLAGS        +=
+
+# Addtional flags for the c compiler
+# CFLAGS          += 
+
+# Addtional flags for the c++ compiler
+# CXXFLAGS        += 
+
+# Addtional flags for the linker
+# LDFLAGS         += 
+
+# Addtional dependencies (files) that the output depends on.
+# ADDITIONAL_DEPS += 
+
+# Addtional flags for coverage analysis tool.
+# COVFLAGS	      +=
+
+# Binaries to be deployed to bindir (i.e. /usr/local/bin)
+# DEPL_BIN	      +=
+
+# Libraries to be deployed to libdir (i.e. /usr/local/lib)
+# DEPL_LIB	      +=
+
+# Configuration files to be deployed to sysconfdir (i.e. /usr/local/etc)
+# DEPL_ETC	      +=
+
+Platform-independent data to be deployed to datadir (i.e. /usr/local/share)
+# DEPL_SHARE      +=
+
+Header files to be deployed to includedir (i.e. /usr/local/include)
+# DEPL_INCLUDE    +=
+
+# Assembler command to use 
 # ASM             =
+
+# C compiler command to use
 # CC              =
+
+# C++ compiler command to use
 # CXX             =
+
+# Linker command to use
 # LD              =
+
+# Archiver command to use (for static library)
 # AR              =
+
+# Objcopy command to use
 # OBJCOPY         =
+
+# Addtional flags for objcopy tool
 # OBJCOPYFLAGS	  =
+
+# Size command to use
 # OBJSIZE	      =
+
+# Addtional flags for size tool
 # OBJSIZEFLAGS    =
-# ASMFLAGS        =
-# CFLAGS          = 
-# CXXFLAGS        = 
-# LIBS            =
-# LDFLAGS         = 
-# ADDITIONAL_DEPS = 
-# COVFLAGS	      =
+
+# Addtional steps needed to be taken before installation
+# pre-install: 
+# 	@echo $@
+
+# Addtional steps needed to be taken after installation
+# post-install: 
+# 	@echo $@
+	
+# Addtional steps needed to be taken before removal
+# pre-uninstall: 
+# 	@echo $@
+
+# Addtional steps needed to be taken after removal
+# post-uninstall: 
+# 	@echo $@
 
 include ultimate-makefile/Makefile.ultimate
