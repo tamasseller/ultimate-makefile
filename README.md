@@ -1,16 +1,14 @@
 Minimalist make based C/C++ build system for hosted and embedded targets.
 =====
 
-The main goals are:
-
- - 🧑‍⚕️ Maintainability: minimal possible complexity for ease of troubleshooting,
- - 🏆 No script generation: first-class build system implemented in pure make,
- - ⛓️ Portability: minimal dependence on external tooling,
- - 🏗️ Incremental building: dependency tracking to enable rebuilding only what is needed,
- - 📦 Modularity: incorporate internal dependencies for build-together libraries,
- - 🚚 Deployment: automagic _install_ target according [GNU Makefile Conventions](https://www.gnu.org/software/make/manual/make.html#Install-Command-Categories) for ease of packaging automation.
- - ✨ Pretty output: add terminal coloring and hide build details for better readability.
- - 🔍 Unit test support: implement test coverage analysis for _check_ target
+ - 🌱 Maintainable: minimal possible complexity for ease of troubleshooting.
+ - 📜 First-class build system: implemented in pure make.
+ - 🔧 Portabile: minimal dependence on external tooling.
+ - 🏗️ Builds on demand: dependency tracking enables fast incremental builds.
+ - 🧩 Modular: incorporate internal dependencies for build-together libraries.
+ - 🚚 Deployment automation friendly: _installs_ according [GNU Makefile Conventions](https://www.gnu.org/software/make/manual/make.html#Install-Command-Categories) for ease of packaging automation.
+ - ✨ Shiny: adds terminal coloring and hides build details for better readability.
+ - 🔬 Test support: implements test coverage analysis for _check_ target.
 
 ## Usage
 
