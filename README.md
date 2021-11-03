@@ -1,26 +1,23 @@
-Minimalist makefile "library" for single output C/C++ projects.
+Minimalist make based C/C++ build system for hosted and embedded targets.
 =====
 
-The main goals are:
-
- - 🛠️ Maintainability: minimal possible complexity for ease of troubleshooting,
- - 🏆 No script generation: first-class build system implemented in pure make,
- - ⛓️ Portability: minimal dependence on external tooling,
- - 🏗️ Incremental building: dependency tracking to enable rebuilding only what is needed,
- - 📦 Modularity: incorporate internal dependencies for build-together libraries,
- - ⛴️ Deployment: automagic _install_ target according [GNU Makefile Conventions](https://www.gnu.org/software/make/manual/make.html#Install-Command-Categories) for ease of packaging automation.
- - ✨ Pretty output: add terminal coloring and hide build details for better readability.
- - 🔍 Unit test support: implement test coverage analysis for _check_ target
+ - 🌱 Maintainable: minimal possible complexity for ease of troubleshooting.
+ - 📜 First-class build system: implemented in pure make.
+ - 🔧 Portabile: minimal dependence on external tooling.
+ - 🏗️ Builds on demand: dependency tracking enables fast incremental builds.
+ - 🧩 Modular: incorporate internal dependencies for build-together libraries.
+ - 🚚 Deployment automation friendly: _installs_ according [GNU Makefile Conventions](https://www.gnu.org/software/make/manual/make.html#Install-Command-Categories) for ease of packaging automation.
+ - ✨ Shiny: adds terminal coloring and hides build details for better readability.
+ - 🔬 Test support: implements test coverage analysis for _check_ target.
 
 ## Usage
 
-
 It is supposed to be used like this:
 
- 1. add ultimate-makefile repo as submodule,
- 2. create application Makefile (e.g. based on the provided example), 
- 3. fill in the parameters and provide overrides in the application Makefile,
- 4. include Makefile.ultimate from the application Makefile.
+ 1. Add ultimate-makefile repo as submodule;
+ 2. Create application Makefile - for each output artifact (e.g. based on the provided example);
+ 3. Fill in the parameters and provide overrides in the application Makefile;
+ 4. Include Makefile.ultimate from the application Makefile.
 
 ## Provided targets
 
@@ -31,9 +28,9 @@ The following well-known make targets are provided.
 Executes an incremental build aided by the dependency extraction mechanisms provided by the compiler. 
 It is also the default target, thus invoking make without any arguments builds the main product (as it should).
 
-### **check** (for test applications)
+### **check**
 
-Run the output application with coverage analisys. Generates the report in HTML.
+Run the output application with coverage analisys. Generates the report in HTML. It is mainly useful then the output is a test application.
 
 ### **install** and **uninstall**
 

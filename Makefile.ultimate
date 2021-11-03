@@ -74,7 +74,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(OBJDIR)/$*.Td
 CC_WITH_FLAGS += $(CC) $(DEPFLAGS) $(CFLAGS) $(INCDIRFLAGS)
 CXX_WITH_FLAGS += $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(INCDIRFLAGS)
 WINDRES_WITH_FLAGS += $(WINDRES) $(addprefix --preprocessor-arg=, $(DEPFLAGS)) $(INCDIRFLAGS)
-ASM_WITH_FLAGS += $(ASM) $(DEPFLAGS) $(ASMFLAGS) $(INCDIRFLAGS)
+ASM_WITH_FLAGS += $(AS) $(ASMFLAGS) $(INCDIRFLAGS)
 
 #
 # Convert source file path to absolute.
@@ -142,7 +142,7 @@ $(OUTLIB): $(OBJS_WITH_PATH) $(ADDITIONAL_DEPS) $(OBJDIR)/.LAST_FLAGS
 	$S$(strip $(AR) rcs $@ $(OBJS_WITH_PATH))
 	
 $(OBJDIR)/%.S.o: %.S $(MAKEFILE_LIST)
-$(OBJDIR)/%.S.o: %.S $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
+$(OBJDIR)/%.S.o: %.S $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
 	@$P 'Compiling $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$S$(strip $(ASM_WITH_FLAGS) $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_FLAGS) -c -o $@ $(call winpath,$<))
