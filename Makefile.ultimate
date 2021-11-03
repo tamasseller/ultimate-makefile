@@ -292,12 +292,12 @@ uninstall: post-uninstall ;
 depl_extract_dirs = $(sort $(foreach v, $(1), $(shell if [ -d $v ]; then echo $v; fi)))
 depl_extract_files = $(sort $(foreach v, $(1), $(shell if [ ! -d $v ]; then echo $v; fi)))
 
-depl_find_subdirs = $(addprefix $(notdir $1)/,$(shell find $1 -type d -printf '%P '))
+depl_find_subdirs = $(addprefix $(notdir $1)/,$(shell find $1 -follow -type d -printf '%P '))
 depl_expand_subdirs = $(foreach v,$(call depl_extract_dirs,$1),$(notdir $v) $(call depl_find_subdirs,$v))
 depl_remove_dirs = cd $2 $(foreach v,$(call depl_expand_subdirs,$1),&& rmdir --ignore-fail-on-non-empty -p $v )
 
 depl_on_each_file_in_root = $(foreach v, $(call depl_extract_files,$2),$(call $1,$v,$3/$(notdir $v)))
-depl_on_each_file_in_subdir  = $(foreach v, $(call depl_extract_dirs,$2),$(foreach w,$(shell find $v -type f -printf '%P '), $(call $1,$v/$w,$3/$(notdir $v)/$w)))
+depl_on_each_file_in_subdir  = $(foreach v, $(call depl_extract_dirs,$2),$(foreach w,$(shell find $v -follow -type f -printf '%P '), $(call $1,$v/$w,$3/$(notdir $v)/$w)))
 depl_on_each_file = $(call depl_on_each_file_in_subdir,$1,$2,$3) $(call depl_on_each_file_in_root,$1,$2,$3)
 
 depl_invoke_install_data = && $P 'Installing $(GREEN_COLOR)$1 -> $2$(RESET_COLOR)\n' && mkdir -p $(dir $2) && $(INSTALL_DATA) "$1" "$2"
