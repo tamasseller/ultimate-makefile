@@ -210,6 +210,8 @@ ifndef COVROOT
 COVROOT = ..
 endif
 
+fail_if_empty = $(if $1,$1,$(error required tool '$2' not found, aborting build))
+summon_tool = $(call fail_if_empty,$(shell command -v "$1" 2>/dev/null),$1)
 print_extra_step = @$P 'Running $(WHITE_COLOR)$(strip $1)$(RESET_COLOR)\n'
 
 check: $(OUTPUT)
