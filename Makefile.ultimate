@@ -215,8 +215,8 @@ summon_tool = $(call fail_if_empty,$(shell command -v "$1" 2>/dev/null),$1)
 print_extra_step = @$P 'Running $(WHITE_COLOR)$(strip $1)$(RESET_COLOR)\n'
 
 check: $(OUTPUT)
-	@rm -rf coverage
-	@mkdir -p coverage
+	@rm -rf $(COVDIR)
+	@mkdir -p $(COVDIR)
 	@$P 'Testing $(PURPLE_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	$S$(TEST_CMD_PREFIX) $(abspath $(OUTPUT)) $(TEST_FLAGS)
 	$(call print_extra_step, "gcovr $(notdir $<)")
