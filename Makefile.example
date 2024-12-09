@@ -7,6 +7,9 @@
 # Source files to compile
 # SOURCES         +=
 
+# Binary resource files to include in the output binary
+# RESOURCES       +=
+
 # Additional include directories passed to compilers  
 # INCLUDE_DIRS    +=
 

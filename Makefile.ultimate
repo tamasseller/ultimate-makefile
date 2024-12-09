@@ -163,11 +163,13 @@ $(OBJDIR)/%.cpp.o: %.cpp $(OBJDIR)/%.d $(MAKEFILE_LIST) $(OBJDIR)/.LAST_FLAGS
 
 __DEFAULT_RESOURCE_SECTION = .rodata,alloc,load,readonly,data,contents
 
+LD_RES ?= $(LD)
+
 $(OBJDIR)/%.res.o: % $(MAKEFILE_LIST)
 	@$P 'Objectifying $(YELLOW_COLOR)$(notdir $<)$(RESET_COLOR)\n'
 	@mkdir -p $(dir $@)
 	$Scd $(dir $<) && \
-	$(strip $(LD) -r -b binary -o $(abspath $@) $(notdir $<))
+	$(strip $(LD_RES) -r -b binary -z noexecstack -o $(abspath $@) $(notdir $<))
 	$S$(OC) --rename-section .data=$(or $($(shell echo $(notdir $<) | tr a-z. A-Z_ )_SECTION),$(__DEFAULT_RESOURCE_SECTION)) $(abspath $@) $(abspath $@)
 	
 $(OBJDIR)/%.rc.o: %.rc $(MAKEFILE_LIST)
